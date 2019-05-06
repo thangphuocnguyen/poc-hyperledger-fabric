@@ -3,7 +3,7 @@
 
 # WARNING!!!
 
-`Crypto Assets and Certificates bellow SHOULD NOT be included in READ PROJECT!!!`
+`Crypto Assets and Certificates below SHOULD NOT included in REAL PROJECT!!!`
 
     ```bash   
     identity
