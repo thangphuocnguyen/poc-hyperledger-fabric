@@ -5,8 +5,8 @@
 
 `Crypto Assets and Certificates below SHOULD NOT included in REAL PROJECT!!!`
 
-    ```bash   
-    identity
-    network/config
-    network/crypto-config
-    ```
+```bash
+identity
+network/config
+network/crypto-config
+```
