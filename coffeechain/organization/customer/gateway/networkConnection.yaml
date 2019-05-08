@@ -1,0 +1,52 @@
+name: "enpinet"
+x-type: "hlfv1"
+description: "POC enpinet"
+version: "1.0"
+channels:
+  # name of the channel
+  channel001:
+    orderers:
+      - orderer.enpi.com
+    peers:
+      peer0.org1.enpi.com:
+        endorsingPeer: true
+        chaincodeQuery: true
+        ledgerQuery: true
+        eventSource: true
+
+organizations:
+  Org1:
+    mspid: Org1MSP
+    peers:
+      - peer0.org1.enpi.com
+    certificateAuthorities:
+      - ca-org1
+
+orderers:
+  orderer.enpi.com:
+    url: grpc://35.247.128.2:7050
+    grpcOptions:
+      ssl-target-name-override: orderer.enpi.com
+
+peers:
+  peer0.org1.enpi.com:
+    # this URL is used to send endorsement and query requests
+    url: grpc://35.247.128.2:7051
+    grpcOptions:
+      ssl-target-name-override: peer0.org1.enpi.com
+      request-timeout: 120001
+
+certificateAuthorities:
+  ca-org1:
+    url: http://35.247.128.2:7054
+    # the properties specified under this object are passed to the 'http' client verbatim when
+    # making the request to the Fabric-CA server
+    httpOptions:
+      verify: false
+    # Fabric-CA supports dynamic user enrollment via REST APIs. A "root" user, a.k.a registrar, is
+    # needed to enroll and invoke new users.
+    registrar:
+      - enrollId: admin
+        enrollSecret: adminpw
+    # [Optional] The optional name of the CA.
+    caName: ca-org1
