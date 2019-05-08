@@ -9,35 +9,57 @@
 ################################################################################
 Organizations:
 
-    # SampleOrg defines an MSP using the sampleconfig.  It should never be used
-    # in production but may be used as a template for other definitions
-    - &OrdererOrg
-        # DefaultOrg defines the organization which is used in the sampleconfig
-        # of the fabric.git development environment
-        Name: OrdererOrg
+  # SampleOrg defines an MSP using the sampleconfig.  It should never be used
+  # in production but may be used as a template for other definitions
+  - &OrdererOrg
+    # DefaultOrg defines the organization which is used in the sampleconfig
+    # of the fabric.git development environment
+    Name: OrdererOrg
 
-        # ID to load the MSP definition as
-        ID: OrdererMSP
+    # ID to load the MSP definition as
+    ID: OrdererMSP
 
-        # MSPDir is the filesystem path which contains the MSP configuration
-        MSPDir: crypto-config/ordererOrganizations/enpi.com/msp
+    # MSPDir is the filesystem path which contains the MSP configuration
+    MSPDir: crypto-config/ordererOrganizations/enpi.com/msp
+
+    Policies:
+      Readers:
+        Type: Signature
+        Rule: "OR('OrdererMSP.member')"
+      Writers:
+        Type: Signature
+        Rule: "OR('OrdererMSP.member')"
+      Admins:
+        Type: Signature
+        Rule: "OR('OrdererMSP.admin')"
 
     - &Org1
-        # DefaultOrg defines the organization which is used in the sampleconfig
-        # of the fabric.git development environment
-        Name: Org1MSP
+      # DefaultOrg defines the organization which is used in the sampleconfig
+      # of the fabric.git development environment
+      Name: Org1MSP
 
-        # ID to load the MSP definition as
-        ID: Org1MSP
+      # ID to load the MSP definition as
+      ID: Org1MSP
 
-        MSPDir: crypto-config/peerOrganizations/org1.enpi.com/msp
+      MSPDir: crypto-config/peerOrganizations/org1.enpi.com/msp
 
-        AnchorPeers:
-            # AnchorPeers defines the location of peers which can be used
-            # for cross org gossip communication.  Note, this value is only
-            # encoded in the genesis block in the Application section context
-            - Host: peer0.org1.enpi.com
-              Port: 7051
+      AnchorPeers:
+        # AnchorPeers defines the location of peers which can be used
+        # for cross org gossip communication.  Note, this value is only
+        # encoded in the genesis block in the Application section context
+        - Host: peer0.org1.enpi.com
+          Port: 7051
+      
+      Policies:
+        Readers:
+          Type: Signature
+          Rule: "OR('Org1MSP.admin', 'Org1MSP.peer', 'Org1MSP.client')"
+        Writers:
+          Type: Signature
+          Rule: "OR('Org1MSP.admin', 'Org1MSP.client')"
+        Admins:
+          Type: Signature
+          Rule: "OR('Org1MSP.admin')"
 
 ################################################################################
 #
@@ -98,6 +120,25 @@ Orderer: &OrdererDefaults
     # the orderer side of the network
     Organizations:
 
+    # Policies defines the set of policies at this level of the config tree
+    # For Orderer policies, their canonical path is
+    #   /Channel/Orderer/<PolicyName>
+    Policies:
+      Readers:
+        Type: ImplicitMeta
+        Rule: "ANY Readers"
+      Writers:
+        Type: ImplicitMeta
+        Rule: "ANY Writers"
+      Admins:
+        Type: ImplicitMeta
+        Rule: "MAJORITY Admins"
+      # BlockValidation specifies what signatures must be included in the block
+      # from the orderer for the peer to validate it.
+      BlockValidation:
+        Type: ImplicitMeta
+        Rule: "ANY Writers"
+
 ################################################################################
 #
 #   Profile
@@ -109,18 +150,19 @@ Orderer: &OrdererDefaults
 Profiles:
 
     OneOrgOrdererGenesis:
-        Orderer:
-            <<: *OrdererDefaults
-            Organizations:
-                - *OrdererOrg
-        Consortiums:
-            EnpiConsortium:
-                Organizations:
-                    - *Org1
+      Orderer:
+        <<: *OrdererDefaults
+        Organizations:
+          - *OrdererOrg
+      Consortiums:
+        EnpiConsortium:
+          Organizations:
+            - *Org1
+            
     OneOrgChannel:
-        Consortium: EnpiConsortium
-        Application:
-            <<: *ApplicationDefaults
-            Organizations:
-                - *Org1
+      Consortium: EnpiConsortium
+      Application:
+        <<: *ApplicationDefaults
+        Organizations:
+          - *Org1
 

@@ -6,7 +6,7 @@ export FABRIC_CFG_PATH=${PWD}
 CHANNEL_NAME=channel001
 
 # remove previous crypto material and config transactions
-rm -fr config/*
+rm -fr channel-artifacts/*
 rm -fr crypto-config/*
 
 # generate crypto material
@@ -27,7 +27,7 @@ echo "#########  Generating Orderer Genesis block ##############"
 echo "##########################################################"
 configtxgen -profile OneOrgOrdererGenesis \
   -channelID ordererchannel \
-  -outputBlock ./config/genesis.block
+  -outputBlock ./channel-artifacts/genesis.block
 if [ "$?" -ne 0 ]; then
   echo "Failed to generate orderer genesis block..."
   exit 1
@@ -39,7 +39,7 @@ echo "#################################################################"
 echo "### Generating channel configuration transaction 'channel.tx' ###"
 echo "#################################################################"
 configtxgen -profile OneOrgChannel \
-  -outputCreateChannelTx ./config/channel.tx \
+  -outputCreateChannelTx ./channel-artifacts/channel.tx \
   -channelID $CHANNEL_NAME
 if [ "$?" -ne 0 ]; then
   echo "Failed to generate channel configuration transaction..."
@@ -52,7 +52,7 @@ echo "#################################################################"
 echo "#######    Generating anchor peer update for Org1MSP   ##########"
 echo "#################################################################"
 configtxgen -profile OneOrgChannel \
-  -outputAnchorPeersUpdate ./config/Org1MSPanchors.tx \
+  -outputAnchorPeersUpdate ./channel-artifacts/Org1MSPanchors.tx \
   -channelID $CHANNEL_NAME -asOrg Org1MSP
 if [ "$?" -ne 0 ]; then
   echo "Failed to generate anchor peer update for Org1MSP..."
