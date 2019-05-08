@@ -1,0 +1,144 @@
+version: '2'
+
+volumes:
+  peer0.org1.enpi.com:
+  peer1.org1.enpi.com:
+
+networks:
+  enpinet:
+
+services:
+  ca.org1.enpi.com:
+    container_name: ca.org1.enpi.com
+    extends:
+      file: base/service-base.yaml
+      service: ca-base
+    environment:
+      - FABRIC_CA_HOME=/etc/hyperledger/fabric/ca-server/ca
+      - FABRIC_CA_SERVER_CA_NAME=ca.org1.enpi.com
+      - FABRIC_CA_SERVER_CA_CERTFILE=/etc/hyperledger/fabric/ca-server/ca/ca.org1.enpi.com-cert.pem
+      - FABRIC_CA_SERVER_CA_KEYFILE=/etc/hyperledger/fabric/ca-server/ca/1519b636b6998c6797224f537352778a1c072030267a103b7e9a62bc28dbb460_sk
+      - FABRIC_CA_SERVER_TLS_ENABLED=true
+      - FABRIC_CA_SERVER_TLS_CERTFILE=/etc/hyperledger/fabric/ca-server/ca/ca.org1.enpi.com-cert.pem
+      - FABRIC_CA_SERVER_TLS_KEYFILE=/etc/hyperledger/fabric/ca-server/ca/1519b636b6998c6797224f537352778a1c072030267a103b7e9a62bc28dbb460_sk
+      - FABRIC_CA_SERVER_PORT=7054
+    ports:
+      - "7054:7054"
+    volumes:
+      - ./crypto-config/peerOrganizations/org1.enpi.com/ca:/etc/hyperledger/fabric/ca-server/ca
+    networks:
+      - enpinet
+  
+  couchdb0.org1.enpi.com:
+    container_name: couchdb0.org1.enpi.com
+    extends:
+      file: base/service-base.yaml
+      service: couchdb-base
+    ports:
+      - "5984:5984"
+    networks:
+      - enpinet
+
+  couchdb1.org1.enpi.com:
+    container_name: couchdb1.org1.enpi.com
+    extends:
+      file: base/service-base.yaml
+      service: couchdb-base
+    ports:
+      - "6984:5984"
+    networks:
+      - enpinet
+  
+  peer0.org1.enpi.com:
+    container_name: peer0.org1.enpi.com
+    extends:
+      file: base/service-base.yaml
+      service: peer-base
+    environment:
+      - CORE_PEER_ID=peer0.org1.enpi.com
+      - CORE_PEER_ADDRESS=peer0.org1.enpi.com:7051
+      - CORE_PEER_LISTENADDRESS=0.0.0.0:7051
+      - CORE_PEER_CHAINCODEADDRESS=peer0.org1.enpi.com:7052
+      - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:7052
+      # used to bootstrap gossip within an organization
+      # - CORE_PEER_GOSSIP_BOOTSTRAP=peer1.org1.enpi.com:8051
+      # If you want to make other peers in your organization known to other organizations, 
+      # then you need to set the CORE_PEER_GOSSIP_EXTERNALENDPOINT
+      # - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.org1.enpi.com:7051
+      - CORE_PEER_LOCALMSPID=Org1MSP
+      # DB CONFIGs -------------------------------------------------------------
+      - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb0.org1.enpi.com:5984
+      # The CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME and CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD
+      # provide the credentials for ledger to connect to CouchDB.  The username and password must
+      # match the username and password set for the associated CouchDB.
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME=${COUCHDB_USER}
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=${COUCHDB_PASSWORD}
+    volumes:
+      - /var/run:/host/var/run
+      - ./crypto-config/peerOrganizations/org1.enpi.com/peers/peer0.org1.enpi.com:/etc/hyperledger/fabric/peer/crypto/peer/peer0.org1.enpi.com
+      - peer0.org1.enpi.com:/var/hyperledger/production
+    ports:
+      - 7051:7051
+    networks:
+      - enpinet
+    depends_on:
+      - couchdb0.org1.enpi.com
+
+  peer1.org1.enpi.com:
+    container_name: peer1.org1.enpi.com
+    extends:
+      file: base/service-base.yaml
+      service: peer-base
+    environment:
+      - CORE_PEER_ID=peer1.org1.enpi.com
+      - CORE_PEER_ADDRESS=peer1.org1.enpi.com:8051
+      - CORE_PEER_LISTENADDRESS=0.0.0.0:8051
+      - CORE_PEER_CHAINCODEADDRESS=peer1.org1.enpi.com:8052
+      - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:8052
+      # used to bootstrap gossip within an organization
+      # - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.org1.enpi.com:7051
+      # If you want to make other peers in your organization known to other organizations, 
+      # then you need to set the CORE_PEER_GOSSIP_EXTERNALENDPOINT
+      # - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer1.org1.enpi.com:8051
+      - CORE_PEER_LOCALMSPID=Org1MSP
+      # DB CONFIGs -------------------------------------------------------------
+      - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb1.org1.enpi.com:6984
+      # The CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME and CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD
+      # provide the credentials for ledger to connect to CouchDB.  The username and password must
+      # match the username and password set for the associated CouchDB.
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME=${COUCHDB_USER}
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=${COUCHDB_PASSWORD}
+    volumes:
+      - /var/run:/host/var/run
+      - ./crypto-config/peerOrganizations/org1.enpi.com/peers/peer1.org1.enpi.com:/etc/hyperledger/fabric/peer/crypto/peer/peer1.org1.enpi.com
+      - peer1.org1.enpi.com:/var/hyperledger/production
+    ports:
+      - 8051:8051
+    networks:
+      - enpinet
+    depends_on:
+      - couchdb1.org1.enpi.com
+
+  cli.org1.enpi.com:
+    container_name: cli.org1.enpi.com
+    extends:
+      file: base/service-base.yaml
+      service: cli-base
+    environment:
+      - CORE_PEER_ID=cli.org1.enpi.com
+      - CORE_PEER_ADDRESS=peer0.org1.enpi.com:7051
+      - CORE_PEER_LOCALMSPID=Org1MSP
+    volumes:
+      - /var/run:/host/var/run
+      - ./../chaincode/:/opt/gopath/src/github.com/chaincode
+      - ./scripts:/opt/gopath/src/github.com/hyperledger/fabric/peer/scripts
+      - ./channel-artifacts:/opt/gopath/src/github.com/hyperledger/fabric/peer/channel-artifacts
+      - ./crypto-config/peerOrganizations/org1.enpi.com/peers/peer0.org1.enpi.com:/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peer/peer0.org1.enpi.com
+      - ./crypto-config/peerOrganizations/org1.enpi.com/users/Admin@org1.enpi.com:/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/user/Admin@org1.enpi.com
+    depends_on:
+      - peer0.org1.enpi.com
+      - peer1.org1.enpi.com
+    networks:
+      - enpinet

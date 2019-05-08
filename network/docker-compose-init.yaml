@@ -1,0 +1,24 @@
+version: '2'
+
+volumes:
+  orderer.enpi.com:
+
+networks:
+  enpinet:
+
+services:
+  orderer.enpi.com:
+    container_name: orderer.enpi.com
+    extends:
+      file: base/service-base.yaml
+      service: orderer-base
+    volumes:
+      - ./channel-artifacts/genesis.block:/var/hyperledger/orderer/orderer.genesis.block
+      - ./crypto-config/ordererOrganizations/enpi.com/orderers/orderer.enpi.com/msp:/var/hyperledger/orderer/msp
+      - ./crypto-config/ordererOrganizations/enpi.com/orderers/orderer.enpi.com/tls/:/var/hyperledger/orderer/tls
+      - orderer.enpi.com:/var/hyperledger/production/orderer
+    ports:
+      - 7050:7050
+    networks:
+      - enpinet
+
